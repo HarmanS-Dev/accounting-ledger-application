@@ -45,7 +45,7 @@ public class Transactions {
         String[] parts = line.split("\\|");
 
         LocalDate date = LocalDate.parse(parts[0], date_formatter);
-        LocalTime time = LocalTime.parse(parts[1]), time_formatter);
+        LocalTime time = LocalTime.parse(parts[1], time_formatter);
         String description = parts[2];
         String vendor = parts[3];
         double amount = Double.parseDouble(parts[4]);
@@ -53,6 +53,10 @@ public class Transactions {
         return new Transactions(date, time, description, vendor, amount);
     }
 
-
+    //Method to convert a Transaction into a CSV line
+    public String toCsvLine() {
+        //Format: date|time|description|vendor|amount
+        return String.format("%s|%s|%s|%s|%.2f", date.format(date_formatter),time.format(time_formatter),description,vendor,amount);
+    }
 
 }
