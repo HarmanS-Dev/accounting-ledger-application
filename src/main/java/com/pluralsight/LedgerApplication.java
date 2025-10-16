@@ -152,9 +152,9 @@ public class LedgerApplication {
 
         // Sort the list by date then time, newest first (descending)
         list.sort(Comparator.comparing(Transactions::getDate, Comparator.reverseOrder()).thenComparing(Transactions::getTime, Comparator.reverseOrder()));
-
-        System.out.println("date|time|description|vendor|amount");
-        System.out.println("----------------------------------------");
+        String header = String.format("%-10s|%-8s|%-60s|%-30s|%10s", "DATE", "TIME", "DESCRIPTION", "VENDOR", "AMOUNT");
+        System.out.println(header);
+        System.out.println("-".repeat(header.length()));
         for (Transactions t : list) {
             System.out.println(t.toCsvLine());
         }
