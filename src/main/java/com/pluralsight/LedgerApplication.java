@@ -139,4 +139,88 @@ public class LedgerApplication {
         }
     }
 
+    private void displayReportsScreen() {
+        String choice;
+
+        do {
+            System.out.println("""
+                    --- REPORTS SCREEN ---
+                    1) Month to Date
+                    2) Previous Month
+                    3) Year to Date
+                    4) Previous Year
+                    5) Search by Vendor
+                    0) Back to Ledger
+                    """);
+            System.out.print("Enter your choice: ");
+            choice = input.nextLine();
+
+            switch (choice) {
+                case "1":
+                    runReportMonthToDate();
+                    break;
+                case "2":
+                    runReportPreviousMonth();
+                    break;
+                case "3":
+                    runReportYearToDate();
+                    break;
+                case "4":
+                    runReportPreviousYear();
+                    break;
+                case  "5":
+                    runReportByVendor();
+                    break;
+                case "0":
+                    return;
+                default:
+                    System.out.println("Invalid option. Please try again.");
+            }
+        } while (true);
+    }
+
+    private void runDateRangeReport(String title, LocalDate startDate, LocalDate endDate) {
+        System.out.println("--- REPORT: " + title + "---");
+        List<Transactions> filtered = transactions.stream().filter(t -> !t.getDate().isBefore(startDate) && !t.getDate().isAfter(endDate)).toList();
+        displayTransactionsTable(filtered);
+    }
+
+    private void runReportMonthToDate() {
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.withDayOfMonth(1);
+        runDateRangeReport("Month To Date", startDate, today);
+    }
+
+    private void runReportPreviousMonth() {
+        LocalDate today = LocalDate.now();
+        LocalDate previousMonth = today.minusMonths(1);
+        LocalDate startDate = previousMonth.withDayOfMonth(1);
+        LocalDate endDate = previousMonth.withDayOfMonth(previousMonth.lengthOfMonth());
+        runDateRangeReport("Previous Month", startDate, endDate);
+    }
+
+    private void runReportYearToDate() {
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.withDayOfYear(1);
+        runDateRangeReport("Previous Month", startDate, today);
+    }
+
+    private void runReportPreviousYear() {
+        LocalDate today = LocalDate.now();
+        LocalDate previousYear = today.minusYears(1);
+        LocalDate startDate = previousYear.withDayOfYear(1);
+        LocalDate endDate = previousYear.withDayOfYear(previousYear.lengthOfYear());
+        runDateRangeReport("Previous Year", startDate, endDate);
+    }
+
+    private void runReportByVendor() {
+        System.out.println("Enter Vendor Name to search: ");
+        String vendorName = input.nextLine().trim();
+        System.out.println("--- Report: Transactions for " + vendorName + "---");
+
+        List<Transactions> filtered = transactions.stream().filter(t -> t.getVendor().toLowerCase().contains(vendorName.toLowerCase())).toList();
+
+        displayTransactionsTable(filtered);
+    }
+
  }
