@@ -4,41 +4,10 @@ import java.time.LocalTime;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-public class Transactions {
-    private LocalDate date;
-    private LocalTime time;
-    private String description;
-    private String vendor;
-    private double amount;
-
+public record Transactions(LocalDate date, LocalTime time, String description, String vendor, double amount) {
     //Formatter for Date & Time
     private static final DateTimeFormatter date_formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter time_formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
-
-    public Transactions(LocalDate date, LocalTime time, String description, String vendor, double amount){
-        this.date = date;
-        this.time = time;
-        this.description = description;
-        this.vendor = vendor;
-        this.amount = amount;
-    }
-
-    //Getters
-    public LocalDate getDate() {
-        return date;
-    }
-    public LocalTime getTime() {
-        return time;
-    }
-    public String getDescription() {
-        return  description;
-    }
-    public String getVendor(){
-        return vendor;
-    }
-    public double getAmount(){
-        return amount;
-    }
 
     //Method to create a transaction from the CSV line
     public static Transactions fromCsvLine(String line) {
@@ -56,7 +25,7 @@ public class Transactions {
     //Method to convert a Transaction into a CSV line
     public String toCsvLine() {
         //Format: date|time|description|vendor|amount
-        return String.format("%-10s|%-8s|%-60s|%-30s|$%10.2f", date.format(date_formatter),time.format(time_formatter),description,vendor,amount);
+        return String.format("%-10s|%-8s|%-60s|%-30s|$%10.2f", date.format(date_formatter), time.format(time_formatter), description, vendor, amount);
     }
 
 }

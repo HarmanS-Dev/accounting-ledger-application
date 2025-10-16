@@ -124,12 +124,12 @@ public class LedgerApplication {
                     displayTransactionsTable(transactions);
                     break;
                 case "D": // Display deposits only
-                    List<Transactions> deposits = transactions.stream().filter(t -> t.getAmount() > 0).collect(Collectors.toCollection(ArrayList::new));
+                    List<Transactions> deposits = transactions.stream().filter(t -> t.amount() > 0).collect(Collectors.toCollection(ArrayList::new));
                     System.out.println("--- VIEW: DEPOSITS ---");
                     displayTransactionsTable(deposits);
                     break;
                 case "P": // Display payments only
-                    List<Transactions> payments = transactions.stream().filter(t -> t.getAmount() < 0).collect(Collectors.toCollection(ArrayList::new));
+                    List<Transactions> payments = transactions.stream().filter(t -> t.amount() < 0).collect(Collectors.toCollection(ArrayList::new));
                     System.out.println("--- VIEW: PAYMENTS ---");
                     displayTransactionsTable(payments);
                     break;
@@ -151,7 +151,7 @@ public class LedgerApplication {
         }
 
         // Sort the list by date then time, newest first (descending)
-        list.sort(Comparator.comparing(Transactions::getDate, Comparator.reverseOrder()).thenComparing(Transactions::getTime, Comparator.reverseOrder()));
+        list.sort(Comparator.comparing(Transactions::date, Comparator.reverseOrder()).thenComparing(Transactions::time, Comparator.reverseOrder()));
         String header = String.format("%-10s|%-8s|%-60s|%-30s|%10s", "DATE", "TIME", "DESCRIPTION", "VENDOR", "AMOUNT");
         System.out.println(header);
         System.out.println("-".repeat(header.length()));
@@ -202,7 +202,7 @@ public class LedgerApplication {
 
     private static void runDateRangeReport(String title, LocalDate startDate, LocalDate endDate) {
         System.out.println("--- REPORT: " + title + "---");
-        List<Transactions> filtered = transactions.stream().filter(t -> !t.getDate().isBefore(startDate) && !t.getDate().isAfter(endDate)).collect(Collectors.toCollection(ArrayList::new));
+        List<Transactions> filtered = transactions.stream().filter(t -> !t.date().isBefore(startDate) && !t.date().isAfter(endDate)).collect(Collectors.toCollection(ArrayList::new));
         displayTransactionsTable(filtered);
     }
 
@@ -239,7 +239,7 @@ public class LedgerApplication {
         String vendorName = input.nextLine().trim();
         System.out.println("--- Report: Transactions for " + vendorName + "---");
 
-        List<Transactions> filtered = transactions.stream().filter(t -> t.getVendor().toLowerCase().contains(vendorName.toLowerCase())).collect(Collectors.toCollection(ArrayList::new));
+        List<Transactions> filtered = transactions.stream().filter(t -> t.vendor().toLowerCase().contains(vendorName.toLowerCase())).collect(Collectors.toCollection(ArrayList::new));
 
         displayTransactionsTable(filtered);
     }
