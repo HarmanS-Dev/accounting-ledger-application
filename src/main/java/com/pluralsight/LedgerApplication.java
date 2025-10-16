@@ -3,6 +3,7 @@ package com.pluralsight;
 import java.io.*;
 import java.time.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class LedgerApplication {
     private static final String fileName = "transactions.csv";
@@ -99,10 +100,18 @@ public class LedgerApplication {
 
             switch (choice) {
                 case "A": // Display all transactions
+                    System.out.println("--- VIEW: ALL TRANSACTIONS ---");
+                    displayTransactionsTable(transactions);
                     break;
                 case "D": // Display deposits only
+                    List<Transactions> deposits = transactions.stream().filter(t -> t.getAmount() > 0).toList();
+                    System.out.println("--- VIEW: DEPOSITS ---");
+                    displayTransactionsTable(deposits);
                     break;
                 case "P": // Display payments only
+                    List<Transactions> payments = transactions.stream().filter(t -> t.getAmount() < 0).toList();
+                    System.out.println("--- VIEW: PAYMENTS ---");
+                    displayTransactionsTable(payments);
                     break;
                 case "R": // Display reports screen
                     break;
@@ -111,6 +120,23 @@ public class LedgerApplication {
                 default:
                     System.out.println("Invalid option. Please try again.");
             }
-        }while (!choice.equals("H"));
+        } while (!choice.equals("H"));
     }
+
+    private void displayTransactionsTable (List<Transactions> list) {
+        if (list.isEmpty()) {
+            System.out.println("--- No transactions to display. ---");
+            return;
+        }
+
+        // Sort the list by date then time, newest first (descending)
+        list.sort(Comparator.comparing(Transactions::getDate, Comparator.reverseOrder()).thenComparing(Transactions::getTime, Comparator.reverseOrder()));
+
+        System.out.println("date|time|description|vendor|amount");
+        System.out.println("----------------------------------------");
+        for (Transactions t : list) {
+            System.out.println(t);
+        }
+    }
+
  }
