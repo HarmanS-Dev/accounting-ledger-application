@@ -11,10 +11,27 @@ public class LedgerApplication {
     private static final List<Transactions> transactions = new ArrayList<>();
 
     public static void main(String[] args) {
-
+        loadTransactions();
+        displayHomeScreen();
     }
 
-    private void displayHomeScreen() {
+    private static void loadTransactions() {
+        transactions.clear();
+        File file = new File(fileName);
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (!line.trim().isEmpty()) {
+                        transactions.add(Transactions.fromCsvLine(line));
+                    }
+            }
+        } catch (IOException e) {
+            System.err.println(" Error Reading transactions File");
+        }
+    }
+
+    private static void displayHomeScreen() {
         String choice;
         do {
             System.out.println("""
@@ -23,6 +40,7 @@ public class LedgerApplication {
                     P) Make Payment (Debit)
                     L) Ledger
                     X) Exit""");
+            System.out.println("Enter your choice: ");
             choice = input.nextLine().toUpperCase();
 
             switch (choice) {
@@ -44,13 +62,14 @@ public class LedgerApplication {
         } while (!choice.equals("X"));
     }
 
-    private Transactions getTransactionDetails(boolean isDeposit){
+    private static Transactions getTransactionDetails(boolean isDeposit){
         System.out.print("Description: ");
         String description = input.nextLine();
         System.out.print("Vendor: ");
         String vendor = input.nextLine();
         System.out.print("Amount: ");
         double amount = input.nextDouble();
+        input.nextLine();
 
         //Making sure deposits are positive and payments are negative
         if (isDeposit && amount < 0) {
@@ -58,24 +77,25 @@ public class LedgerApplication {
             amount = Math.abs(amount);
         } else if (!isDeposit && amount > 0) {
             System.out.println("A payment must be a negative amount. Saving as a negative.");
+            amount = -Math.abs(amount);
         }
 
         return new Transactions(LocalDate.now(), LocalTime.now(), description, vendor, amount);
     }
 
-    private void addDeposit() {
+    private static void addDeposit() {
         System.out.println("--- ADD DEPOSIT ---");
         Transactions t = getTransactionDetails(true);
         saveTransaction(t);
     }
 
-    private void makePayment() {
+    private static void makePayment() {
         System.out.println("--- MAKE PAYMENT ---");
         Transactions t = getTransactionDetails(false);
         saveTransaction(t);
     }
 
-    private void saveTransaction(Transactions t) {
+    private static void saveTransaction(Transactions t) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileName, true))) {
             bw.write(t.toCsvLine());
             bw.newLine();
@@ -85,7 +105,7 @@ public class LedgerApplication {
         }
     }
 
-    private void displayLedgerScreen(){
+    private static void displayLedgerScreen(){
         String choice;
         do {
             System.out.println("""
@@ -104,26 +124,27 @@ public class LedgerApplication {
                     displayTransactionsTable(transactions);
                     break;
                 case "D": // Display deposits only
-                    List<Transactions> deposits = transactions.stream().filter(t -> t.getAmount() > 0).toList();
+                    List<Transactions> deposits = transactions.stream().filter(t -> t.getAmount() > 0).collect(Collectors.toCollection(ArrayList::new));
                     System.out.println("--- VIEW: DEPOSITS ---");
                     displayTransactionsTable(deposits);
                     break;
                 case "P": // Display payments only
-                    List<Transactions> payments = transactions.stream().filter(t -> t.getAmount() < 0).toList();
+                    List<Transactions> payments = transactions.stream().filter(t -> t.getAmount() < 0).collect(Collectors.toCollection(ArrayList::new));
                     System.out.println("--- VIEW: PAYMENTS ---");
                     displayTransactionsTable(payments);
                     break;
                 case "R": // Display reports screen
+                    displayReportsScreen();
                     break;
                 case "H": // Display home screen
-                    break;
+                    return;
                 default:
                     System.out.println("Invalid option. Please try again.");
             }
-        } while (!choice.equals("H"));
+        } while (true);
     }
 
-    private void displayTransactionsTable (List<Transactions> list) {
+    private static void displayTransactionsTable(List<Transactions> list) {
         if (list.isEmpty()) {
             System.out.println("--- No transactions to display. ---");
             return;
@@ -135,11 +156,11 @@ public class LedgerApplication {
         System.out.println("date|time|description|vendor|amount");
         System.out.println("----------------------------------------");
         for (Transactions t : list) {
-            System.out.println(t);
+            System.out.println(t.toCsvLine());
         }
     }
 
-    private void displayReportsScreen() {
+    private static void displayReportsScreen() {
         String choice;
 
         do {
@@ -179,19 +200,19 @@ public class LedgerApplication {
         } while (true);
     }
 
-    private void runDateRangeReport(String title, LocalDate startDate, LocalDate endDate) {
+    private static void runDateRangeReport(String title, LocalDate startDate, LocalDate endDate) {
         System.out.println("--- REPORT: " + title + "---");
-        List<Transactions> filtered = transactions.stream().filter(t -> !t.getDate().isBefore(startDate) && !t.getDate().isAfter(endDate)).toList();
+        List<Transactions> filtered = transactions.stream().filter(t -> !t.getDate().isBefore(startDate) && !t.getDate().isAfter(endDate)).collect(Collectors.toCollection(ArrayList::new));
         displayTransactionsTable(filtered);
     }
 
-    private void runReportMonthToDate() {
+    private static void runReportMonthToDate() {
         LocalDate today = LocalDate.now();
         LocalDate startDate = today.withDayOfMonth(1);
         runDateRangeReport("Month To Date", startDate, today);
     }
 
-    private void runReportPreviousMonth() {
+    private static void runReportPreviousMonth() {
         LocalDate today = LocalDate.now();
         LocalDate previousMonth = today.minusMonths(1);
         LocalDate startDate = previousMonth.withDayOfMonth(1);
@@ -199,13 +220,13 @@ public class LedgerApplication {
         runDateRangeReport("Previous Month", startDate, endDate);
     }
 
-    private void runReportYearToDate() {
+    private static void runReportYearToDate() {
         LocalDate today = LocalDate.now();
         LocalDate startDate = today.withDayOfYear(1);
-        runDateRangeReport("Previous Month", startDate, today);
+        runDateRangeReport("Year to Date", startDate, today);
     }
 
-    private void runReportPreviousYear() {
+    private static void runReportPreviousYear() {
         LocalDate today = LocalDate.now();
         LocalDate previousYear = today.minusYears(1);
         LocalDate startDate = previousYear.withDayOfYear(1);
@@ -213,12 +234,12 @@ public class LedgerApplication {
         runDateRangeReport("Previous Year", startDate, endDate);
     }
 
-    private void runReportByVendor() {
+    private static void runReportByVendor() {
         System.out.println("Enter Vendor Name to search: ");
         String vendorName = input.nextLine().trim();
         System.out.println("--- Report: Transactions for " + vendorName + "---");
 
-        List<Transactions> filtered = transactions.stream().filter(t -> t.getVendor().toLowerCase().contains(vendorName.toLowerCase())).toList();
+        List<Transactions> filtered = transactions.stream().filter(t -> t.getVendor().toLowerCase().contains(vendorName.toLowerCase())).collect(Collectors.toCollection(ArrayList::new));
 
         displayTransactionsTable(filtered);
     }
