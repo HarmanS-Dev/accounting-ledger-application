@@ -13,6 +13,7 @@ public record Transactions(LocalDate date, LocalTime time, String description, S
     public static Transactions fromCsvLine(String line) {
         String[] parts = line.split("\\|");
 
+        // Parses the date, time, and amount from the string parts
         LocalDate date = LocalDate.parse(parts[0], date_formatter);
         LocalTime time = LocalTime.parse(parts[1], time_formatter);
         String description = parts[2];

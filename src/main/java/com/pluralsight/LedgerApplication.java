@@ -8,20 +8,23 @@ import java.util.stream.Collectors;
 public class LedgerApplication {
     private static final String fileName = "transactions.csv";
     private static final Scanner input = new Scanner(System.in);
+    // Stores all transactions loaded from or added to the CSV file
     private static final List<Transactions> transactions = new ArrayList<>();
 
     public static void main(String[] args) {
         loadTransactions();
         displayHomeScreen();
     }
-
+    //Reads all transactions from the 'transactions.csv' file and populates the in-memory list
     private static void loadTransactions() {
-        transactions.clear();
+        transactions.clear(); // Clear existing data before loading
         File file = new File(fileName);
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
+            // Read file line by line
             while ((line = br.readLine()) != null) {
+                // Ignore empty lines
                 if (!line.trim().isEmpty()) {
                         transactions.add(Transactions.fromCsvLine(line));
                     }
@@ -30,7 +33,7 @@ public class LedgerApplication {
             System.err.println(" Error Reading transactions File");
         }
     }
-
+    // Displays the main menu and handles the user selection
     private static void displayHomeScreen() {
         String choice;
         do {
@@ -44,16 +47,16 @@ public class LedgerApplication {
             choice = input.nextLine().toUpperCase();
 
             switch (choice) {
-                case "D":
+                case "D": // Add Deposit
                     addDeposit();
                     break;
-                case "P":
+                case "P": // Add Payment
                     makePayment();
                     break;
-                case "L":
+                case "L": // Display Ledger screen
                     displayLedgerScreen();
                     break;
-                case "X":
+                case "X": // Exit Application
                     System.out.println("Exiting Application. Goodbye!");
                     break;
                 default:
@@ -62,6 +65,7 @@ public class LedgerApplication {
         } while (!choice.equals("X"));
     }
 
+    // Collects common transactions details from user.
     private static Transactions getTransactionDetails(boolean isDeposit){
         System.out.print("Description: ");
         String description = input.nextLine();
@@ -83,24 +87,28 @@ public class LedgerApplication {
         return new Transactions(LocalDate.now(), LocalTime.now(), description, vendor, amount);
     }
 
+    // Prompts user for deposit details and saves the transactions
     private static void addDeposit() {
         System.out.println("--- ADD DEPOSIT ---");
         Transactions t = getTransactionDetails(true);
         saveTransaction(t);
     }
 
+    // Prompts user for payment details and saves the transactions
     private static void makePayment() {
         System.out.println("--- MAKE PAYMENT ---");
         Transactions t = getTransactionDetails(false);
         saveTransaction(t);
     }
 
+    // Saves a new transaction to both CSV file and the in-memory list.
     private static void saveTransaction(Transactions t) {
+        // Use 'true' in FileWriter to append to the existing file
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileName, true))) {
             bw.write(t.toCsvLine());
             bw.newLine();
 
-            transactions.add(t);
+            transactions.add(t); // Add to the in-memory list
 
             System.out.println("Transaction saved successfully");
         } catch (IOException e) {
@@ -109,6 +117,7 @@ public class LedgerApplication {
 
     }
 
+    // Displays the Ledger menu
     private static void displayLedgerScreen(){
         String choice;
         do {
@@ -148,6 +157,7 @@ public class LedgerApplication {
         } while (true);
     }
 
+    // Formats and prints a list of transactions to the console.
     private static void displayTransactionsTable(List<Transactions> list) {
         if (list.isEmpty()) {
             System.out.println("--- No transactions to display. ---");
@@ -164,6 +174,7 @@ public class LedgerApplication {
         }
     }
 
+    // Displays the Reports menu
     private static void displayReportsScreen() {
         String choice;
 
@@ -208,18 +219,21 @@ public class LedgerApplication {
         } while (true);
     }
 
+    // Filters transactions by a given date range and displays the results
     private static void runDateRangeReport(String title, LocalDate startDate, LocalDate endDate) {
         System.out.println("--- REPORT: " + title + "---");
         List<Transactions> filtered = transactions.stream().filter(t -> !t.date().isBefore(startDate) && !t.date().isAfter(endDate)).collect(Collectors.toCollection(ArrayList::new));
         displayTransactionsTable(filtered);
     }
 
+    // Runs the Month to Date report
     private static void runReportMonthToDate() {
         LocalDate today = LocalDate.now();
         LocalDate startDate = today.withDayOfMonth(1);
         runDateRangeReport("Month To Date", startDate, today);
     }
 
+    // Runs the Previous Month report
     private static void runReportPreviousMonth() {
         LocalDate today = LocalDate.now();
         LocalDate previousMonth = today.minusMonths(1);
@@ -228,34 +242,41 @@ public class LedgerApplication {
         runDateRangeReport("Previous Month", startDate, endDate);
     }
 
+    // Runs the Year to Date report
     private static void runReportYearToDate() {
         LocalDate today = LocalDate.now();
         LocalDate startDate = today.withDayOfYear(1);
         runDateRangeReport("Year to Date", startDate, today);
     }
 
+    // Runs the Previous Year report
     private static void runReportPreviousYear() {
         LocalDate today = LocalDate.now();
         LocalDate previousYear = today.minusYears(1);
+        // Calculate the first and last day of the previous year
         LocalDate startDate = previousYear.withDayOfYear(1);
         LocalDate endDate = previousYear.withDayOfYear(previousYear.lengthOfYear());
         runDateRangeReport("Previous Year", startDate, endDate);
     }
 
+    // Runs a report to find all transactions matching a vendor name  keyword
     private static void runReportByVendor() {
         System.out.println("Enter Vendor Name to search: ");
         String vendorName = input.nextLine().trim();
         System.out.println("--- Report: Transactions for " + vendorName + "---");
 
+        // Filter transactions where the vendor name contains the search keyabord
         List<Transactions> filtered = transactions.stream().filter(t -> t.vendor().toLowerCase().contains(vendorName.toLowerCase())).collect(Collectors.toCollection(ArrayList::new));
 
         displayTransactionsTable(filtered);
     }
 
+    // Runs a report using custom parameters
     private static void runReportCustomSearch() {
         System.out.println("--- REPORT: CUSTOM SEARCH ---");
         System.out.println("Enter criteria to filter. Leave blank for fields you don't want to filter.");
 
+        // Get user input for all possible filters
         LocalDate startDate = null;
         LocalDate endDate = null;
         System.out.println("Start Date (yyy-MM-dd, leave blank to ignore): ");
@@ -272,6 +293,7 @@ public class LedgerApplication {
         System.out.println("Exact Amount (e.g., -50.00 or 100,00, leave blank to ignore): $ ");
         String amountStr = input.nextLine().trim();
 
+        // Parse date inputs if provided
         if (!startDateStr.isEmpty()) {
                 startDate = LocalDate.parse(startDateStr);
         }
@@ -280,38 +302,47 @@ public class LedgerApplication {
             endDate = LocalDate.parse(endDateStr);
         }
 
+        // Parse amount input if provided
         if (!amountStr.isEmpty()) {
             amount = Double.parseDouble(amountStr);
         }
 
+        // Use final variable for use in the lambda expression
         final LocalDate finalStartDate = startDate;
         final LocalDate finalEndDate = endDate;
         final String finalDescription = description;
         final String finalVendor = vendor;
         final Double finalAmount = amount;
 
+        // Apply all selected filters to the list of transactions
         List<Transactions> filtered = transactions.stream().filter(t -> {
+            // Filter 1: Start Date (transaction date must be on or after start date)
             if (finalStartDate != null && t.date().isBefore(finalStartDate)) {
                 return false;
             }
 
+            // Filter 2: End Date (transaction date ust be on or before end date)
             if (finalEndDate != null && t.date().isAfter(finalEndDate)) {
                 return false;
             }
 
+            // Filter 3: Description keyword (case-insensitive contains check)
             if (!finalDescription.isEmpty() && !t.description().toLowerCase().contains(finalDescription)) {
                 return false;
             }
 
+            // Filter 4: Vendor keyboard (case-insensitive contains check)
             if (!finalVendor.isEmpty() && !t.vendor().toLowerCase().contains(finalVendor)) {
                 return false;
             }
 
+            // Filter 5: Exact Amount (using epsilon for precise double comparison)
             if (finalAmount != null) {
                 final double epsilon = 0.001;
                 return !(Math.abs(t.amount() - finalAmount) > epsilon);
             }
 
+            // If all active checks pass, keep the transaction
             return true;
         }).collect(Collectors.toCollection(ArrayList::new));
 
