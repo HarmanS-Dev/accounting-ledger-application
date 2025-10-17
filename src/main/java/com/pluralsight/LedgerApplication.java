@@ -40,7 +40,7 @@ public class LedgerApplication {
                     P) Make Payment (Debit)
                     L) Ledger
                     X) Exit""");
-            System.out.println("Enter your choice: ");
+            System.out.print("Enter your choice: ");
             choice = input.nextLine().toUpperCase();
 
             switch (choice) {
@@ -171,6 +171,7 @@ public class LedgerApplication {
                     3) Year to Date
                     4) Previous Year
                     5) Search by Vendor
+                    6) Custom Search
                     0) Back to Ledger
                     """);
             System.out.print("Enter your choice: ");
@@ -191,6 +192,9 @@ public class LedgerApplication {
                     break;
                 case  "5":
                     runReportByVendor();
+                    break;
+                case "6":
+                    runReportCustomSearch();
                     break;
                 case "0":
                     return;
@@ -244,4 +248,70 @@ public class LedgerApplication {
         displayTransactionsTable(filtered);
     }
 
+    private static void runReportCustomSearch() {
+        System.out.println("--- REPORT: CUSTOM SEARCH ---");
+        System.out.println("Enter criteria to filter. Leave blank for fields you don't want to filter.");
+
+        LocalDate startDate = null;
+        LocalDate endDate = null;
+        System.out.println("Start Date (yyy-MM-dd, leave blank to ignore): ");
+        String startDateStr = input.nextLine().trim();
+        System.out.println("End Date (yyyy-MM-dd, leave blank to ignore): ");
+        String endDateStr = input.nextLine().trim();
+
+        System.out.println("Description keyword (leave blank to ignore): ");
+        String description = input.nextLine().trim();
+        System.out.println("Vendor name keyword (leave blank to ignore): ");
+        String vendor = input.nextLine().trim();
+
+        Double amount = null;
+        System.out.println("Exact Amount (e.g., -50.00 or 100,00, leave blank to ignore): $ ");
+        String amountStr = input.nextLine().trim();
+
+        if (!startDateStr.isEmpty()) {
+                startDate = LocalDate.parse(startDateStr);
+        }
+
+        if (!endDateStr.isEmpty()) {
+            endDate = LocalDate.parse(endDateStr);
+        }
+
+        if (!amountStr.isEmpty()) {
+            amount = Double.parseDouble(amountStr);
+        }
+
+        final LocalDate finalStartDate = startDate;
+        final LocalDate finalEndDate = endDate;
+        final String finalDescription = description;
+        final String finalVendor = vendor;
+        final Double finalAmount = amount;
+
+        List<Transactions> filtered = transactions.stream().filter(t -> {
+            if (finalStartDate != null && t.date().isBefore(finalStartDate)) {
+                return false;
+            }
+
+            if (finalEndDate != null && t.date().isAfter(finalEndDate)) {
+                return false;
+            }
+
+            if (!finalDescription.isEmpty() && !t.description().toLowerCase().contains(finalDescription)) {
+                return false;
+            }
+
+            if (!finalVendor.isEmpty() && !t.vendor().toLowerCase().contains(finalVendor)) {
+                return false;
+            }
+
+            if (finalAmount != null) {
+                final double epsilon = 0.001;
+                return !(Math.abs(t.amount() - finalAmount) > epsilon);
+            }
+
+            return true;
+        }).collect(Collectors.toCollection(ArrayList::new));
+
+        System.out.println("--- Report: Custom Search Results ---");
+        displayTransactionsTable(filtered);
+    }
  }
