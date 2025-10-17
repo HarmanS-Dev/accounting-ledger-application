@@ -99,10 +99,14 @@ public class LedgerApplication {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileName, true))) {
             bw.write(t.toCsvLine());
             bw.newLine();
+
+            transactions.add(t);
+
             System.out.println("Transaction saved successfully");
         } catch (IOException e) {
             System.err.println("Error saving transaction: " + e.getMessage());
         }
+
     }
 
     private static void displayLedgerScreen(){
