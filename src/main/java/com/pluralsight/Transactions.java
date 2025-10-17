@@ -26,6 +26,12 @@ public record Transactions(LocalDate date, LocalTime time, String description, S
     //Method to convert a Transaction into a CSV line
     public String toCsvLine() {
         //Format: date|time|description|vendor|amount
+        return String.format("%s|%s|%s|%s|%.2f", date.format(date_formatter), time.format(time_formatter), description, vendor, amount);
+    }
+
+
+    // Method to convert a Transaction to a formatted display
+    public String toDisplayString() {
         return String.format("%-10s|%-8s|%-60s|%-30s|$%10.2f", date.format(date_formatter), time.format(time_formatter), description, vendor, amount);
     }
 

@@ -170,7 +170,7 @@ public class LedgerApplication {
         System.out.println(header);
         System.out.println("-".repeat(header.length()));
         for (Transactions t : list) {
-            System.out.println(t.toCsvLine());
+            System.out.println(t.toDisplayString());
         }
     }
 
@@ -327,12 +327,12 @@ public class LedgerApplication {
             }
 
             // Filter 3: Description keyword (case-insensitive contains check)
-            if (!finalDescription.isEmpty() && !t.description().toLowerCase().contains(finalDescription)) {
+            if (!finalDescription.isEmpty() && !t.description().toLowerCase().contains(finalDescription.toLowerCase())) {
                 return false;
             }
 
             // Filter 4: Vendor keyboard (case-insensitive contains check)
-            if (!finalVendor.isEmpty() && !t.vendor().toLowerCase().contains(finalVendor)) {
+            if (!finalVendor.isEmpty() && !t.vendor().toLowerCase().contains(finalVendor.toLowerCase())) {
                 return false;
             }
 
